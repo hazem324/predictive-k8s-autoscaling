@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-controller
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-controller
+  template:
+    metadata:
+      labels:
+        app: ai-controller
+    spec:
+      serviceAccountName: ai-controller-sa
+      containers:
+      - name: controller
+        image: ai-controller:v1
+        imagePullPolicy: Never
