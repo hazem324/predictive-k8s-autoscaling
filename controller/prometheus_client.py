@@ -3,29 +3,63 @@ from datetime import datetime
 
 PROMETHEUS = "http://monitoring-kube-prometheus-prometheus:9090"
 
-def query(q):
+
+def query(q: str) -> float:
     try:
-        r = requests.get(f"{PROMETHEUS}/api/v1/query",
-                         params={"query": q}, timeout=5)
+        r = requests.get(
+            f"{PROMETHEUS}/api/v1/query",
+            params={"query": q},
+            timeout=5,
+        )
         res = r.json()["data"]["result"]
         return float(res[0]["value"][1]) if res else 0.0
-    except:
+    except Exception:
         return 0.0
 
-def get_metrics():
+
+def get_metrics(deployment: str, namespace: str) -> dict:
+    """
+    Fetch live metrics scoped to a specific deployment inside a namespace.
+
+    Pods belonging to a Deployment are matched by the label  app=<deployment>
+    which is the default label set by `kubectl create deployment` and most Helm
+    charts.  If your pods use a different label key, change the selector below.
+    """
     now = datetime.now()
+
+    # Label selector shared by every query for this deployment
+    sel = f'namespace="{namespace}", pod=~"^{deployment}-.*"'
+
     return {
-        # Current metrics — from Prometheus
-        "cpu_mean": query('avg(rate(container_cpu_usage_seconds_total{namespace="default"}[1m]))*100'),
-        "cpu_max":  query('max(rate(container_cpu_usage_seconds_total{namespace="default"}[1m]))*100'),
-        "mem_mean": query('avg(container_memory_usage_bytes{namespace="default"}/container_spec_memory_limit_bytes)*100'),
-        "mem_max":  query('max(container_memory_usage_bytes{namespace="default"}/container_spec_memory_limit_bytes)*100'),
-        "wep":      query('sum(rate(http_requests_total{namespace="default"}[1m]))*60'),
-        # Defaults for Borg-specific features not available in Prometheus
+        # ── CPU (%) ───────────────────────────────────────────────────────────
+        "cpu_mean": query(
+            f'avg(rate(container_cpu_usage_seconds_total{{{sel}}}[1m])) * 100'
+        ),
+        "cpu_max": query(
+            f'max(rate(container_cpu_usage_seconds_total{{{sel}}}[1m])) * 100'
+        ),
+
+        # ── Memory (% of limit) ───────────────────────────────────────────────
+        "mem_mean": query(
+            f'avg(container_memory_usage_bytes{{{sel}}}'
+            f' / container_spec_memory_limit_bytes{{{sel}}}) * 100'
+        ),
+        "mem_max": query(
+            f'max(container_memory_usage_bytes{{{sel}}}'
+            f' / container_spec_memory_limit_bytes{{{sel}}}) * 100'
+        ),
+
+        # ── Requests per minute ───────────────────────────────────────────────
+        "wep": query(
+            f'sum(rate(http_requests_total{{{sel}}}[1m])) * 60'
+        ),
+
+        # ── Borg-specific features not available in Prometheus ────────────────
         "priority_mean": 100.0,
         "assigned_mem":  0.01,
         "page_cache":    0.005,
-        # Time features — computed locally
+
+        # ── Time features (computed locally, same for every deployment) ───────
         "hour":        now.hour,
         "day_of_week": now.weekday(),
         "is_weekend":  int(now.weekday() >= 5),

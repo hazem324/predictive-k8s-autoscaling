@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: taskflow-db
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: mysql
+
+  template:
+    metadata:
+      labels:
+        app: mysql
+
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8
+
+          ports:
+            - containerPort: 3306
+
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+
+            - name: MYSQL_DATABASE
+              value: todo
+
+            - name: MYSQL_USER
+              value: appuser
+
+            - name: MYSQL_PASSWORD
+              value: apppass
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 60
+            periodSeconds: 20
+
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
+
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
