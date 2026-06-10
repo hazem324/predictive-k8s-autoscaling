@@ -29,10 +29,16 @@ spec:
               value: root
 
             - name: MYSQL_DATABASE
-              value: todo
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MYSQL_DATABASE
 
             - name: MYSQL_USER
-              value: appuser
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MYSQL_USER
 
             - name: MYSQL_PASSWORD
               value: apppass

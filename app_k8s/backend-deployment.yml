@@ -26,10 +26,16 @@ spec:
 
           env:
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://db-service:3306/todo
+              valueFrom:
+                configMapKeyRef:
+                name: app-config
+                key: SPRING_DATASOURCE_URL
 
             - name: SPRING_DATASOURCE_USERNAME
-              value: appuser
+              valueFrom:
+                configMapKeyRef:
+                name: app-config
+                key: SPRING_DATASOURCE_USERNAME
 
             - name: SPRING_DATASOURCE_PASSWORD
               value: apppass
@@ -45,14 +51,14 @@ spec:
 
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/todo
               port: 8090
             initialDelaySeconds: 20
             periodSeconds: 10
 
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/todo
               port: 8090
             initialDelaySeconds: 60
             periodSeconds: 20

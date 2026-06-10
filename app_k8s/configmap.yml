@@ -1,0 +1,13 @@
+apiVersion : v1
+kind: ConfigMap
+
+metadata : 
+  name: app-config
+  namespace: task-flow
+
+data:
+  SPRING_DATASOURCE_URL: jdbc:mysql://db-service:3306/todo
+  SPRING_DATASOURCE_USERNAME: appuser
+  MYSQL_DATABASE: todo
+  MYSQL_USER: appuser
+  
