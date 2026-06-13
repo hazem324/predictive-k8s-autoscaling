@@ -41,18 +41,41 @@ def get_metrics(deployment: str, namespace: str) -> dict:
 
         # ── Memory (% of limit) ───────────────────────────────────────────────
         "mem_mean": query(
-            f'avg(container_memory_usage_bytes{{{sel}}}'
-            f' / container_spec_memory_limit_bytes{{{sel}}}) * 100'
-        ),
-        "mem_max": query(
-            f'max(container_memory_usage_bytes{{{sel}}}'
-            f' / container_spec_memory_limit_bytes{{{sel}}}) * 100'
-        ),
+    f'''
+    avg(
+      container_memory_usage_bytes{{{sel}}}
+    )
+    /
+    avg(
+      kube_pod_container_resource_limits{{
+        namespace="{namespace}",
+        pod=~"^{deployment}-.*",
+        resource="memory"
+      }}
+    ) * 100
+    '''
+),
+
+"mem_max": query(
+    f'''
+    max(
+      container_memory_usage_bytes{{{sel}}}
+    )
+    /
+    max(
+      kube_pod_container_resource_limits{{
+        namespace="{namespace}",
+        pod=~"^{deployment}-.*",
+        resource="memory"
+      }}
+    ) * 100
+    '''
+),
 
         # ── Requests per minute ───────────────────────────────────────────────
         "wep": query(
-            f'sum(rate(http_requests_total{{{sel}}}[1m])) * 60'
-        ),
+    f'sum(rate(nginx_ingress_controller_requests{{exported_namespace="{namespace}"}}[1m])) * 60'
+),
 
         # ── Borg-specific features not available in Prometheus ────────────────
         "priority_mean": 100.0,
