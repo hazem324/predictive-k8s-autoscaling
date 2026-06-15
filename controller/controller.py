@@ -3,7 +3,7 @@ import pickle, time, threading
 from prometheus_client import get_metrics
 from features import compute_temporal
 
-# ── Connect to Kubernetes from inside the pod ────────────────────────────────
+# Connect to Kubernetes from inside the pod 
 try:
     config.load_incluster_config()
     print("Running inside Kubernetes")
@@ -13,7 +13,7 @@ except Exception:
 apps_v1    = client.AppsV1Api()
 core_v1    = client.CoreV1Api()
 
-# ── Detect the namespace this controller is running in ──────────────────────
+# Detect the namespace this controller is running in 
 def get_current_namespace() -> str:
     """Read namespace from the service-account token mounted in every pod."""
     ns_file = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
@@ -29,11 +29,11 @@ def get_current_namespace() -> str:
 NAMESPACE = get_current_namespace()
 print(f"Controller namespace: {NAMESPACE}")
 
-# ── Load the trained model ───────────────────────────────────────────────────
+# Load the trained model 
 with open("/app/model/model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# ── Feature order must match Colab training EXACTLY ─────────────────────────
+# Feature order must match Colab training EXACTLY 
 FEATURES = [
     "cpu_mean", "cpu_max", "mem_mean", "mem_max", "wep",
     "priority_mean", "assigned_mem", "page_cache",
@@ -49,7 +49,7 @@ MAX_REPLICAS     = 10
 MIN_REPLICAS     = 1
 
 
-# ── Per-deployment helpers ───────────────────────────────────────────────────
+# Per-deployment helpers 
 def scale(deployment: str, n: int) -> None:
     patch = {"spec": {"replicas": n}}
     apps_v1.patch_namespaced_deployment_scale(deployment, NAMESPACE, patch)
@@ -67,7 +67,7 @@ def list_deployments() -> list[str]:
     return [d.metadata.name for d in deploys.items]
 
 
-# ── Independent scaling loop for a single Deployment ────────────────────────
+# Independent scaling loop for a single Deployment 
 def deployment_loop(deployment: str) -> None:
     """Runs forever in its own thread; maintains its own history buffer."""
     history: list[dict] = []
@@ -121,7 +121,7 @@ def deployment_loop(deployment: str) -> None:
         time.sleep(SCALE_INTERVAL)
 
 
-# ── Watcher: discovers new Deployments and spawns threads for them ───────────
+# Watcher: discovers new Deployments and spawns threads for them 
 def watcher_loop() -> None:
     """
     Polls for new Deployments every 30 s.
@@ -157,7 +157,7 @@ def watcher_loop() -> None:
         time.sleep(30)   # re-check for new/removed deployments every 30 s
 
 
-# ── Entry point ──────────────────────────────────────────────────────────────
+# Entry point 
 if __name__ == "__main__":
     print(f"AI Controller started — namespace={NAMESPACE}  model loaded")
     watcher_loop()   # runs forever in the main thread

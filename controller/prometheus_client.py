@@ -31,7 +31,7 @@ def get_metrics(deployment: str, namespace: str) -> dict:
     sel = f'namespace="{namespace}", pod=~"^{deployment}-.*"'
 
     return {
-        # ── CPU (%) ───────────────────────────────────────────────────────────
+        # CPU (%)
         "cpu_mean": query(
             f'avg(rate(container_cpu_usage_seconds_total{{{sel}}}[1m])) * 100'
         ),
@@ -39,7 +39,7 @@ def get_metrics(deployment: str, namespace: str) -> dict:
             f'max(rate(container_cpu_usage_seconds_total{{{sel}}}[1m])) * 100'
         ),
 
-        # ── Memory (% of limit) ───────────────────────────────────────────────
+        # Memory (% of limit) 
         "mem_mean": query(
     f'''
     avg(
@@ -72,17 +72,17 @@ def get_metrics(deployment: str, namespace: str) -> dict:
     '''
 ),
 
-        # ── Requests per minute ───────────────────────────────────────────────
+        # Requests per minute 
         "wep": query(
     f'sum(rate(nginx_ingress_controller_requests{{exported_namespace="{namespace}"}}[1m])) * 60'
 ),
 
-        # ── Borg-specific features not available in Prometheus ────────────────
+        # Borg-specific features not available in Prometheus 
         "priority_mean": 100.0,
         "assigned_mem":  0.01,
         "page_cache":    0.005,
 
-        # ── Time features (computed locally, same for every deployment) ───────
+        # Time features (computed locally, same for every deployment) 
         "hour":        now.hour,
         "day_of_week": now.weekday(),
         "is_weekend":  int(now.weekday() >= 5),
