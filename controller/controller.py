@@ -4,7 +4,12 @@ from prometheus_client import get_metrics
 from features import compute_temporal
 
 # ── Connect to Kubernetes from inside the pod ────────────────────────────────
-config.load_incluster_config()
+try:
+    config.load_incluster_config()
+    print("Running inside Kubernetes")
+except Exception:
+    config.load_kube_config()
+    print("Running locally")
 apps_v1    = client.AppsV1Api()
 core_v1    = client.CoreV1Api()
 
@@ -25,7 +30,7 @@ NAMESPACE = get_current_namespace()
 print(f"Controller namespace: {NAMESPACE}")
 
 # ── Load the trained model ───────────────────────────────────────────────────
-with open("/app/model.pkl", "rb") as f:
+with open("/app/model/model.pkl", "rb") as f:
     model = pickle.load(f)
 
 # ── Feature order must match Colab training EXACTLY ─────────────────────────

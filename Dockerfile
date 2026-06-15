@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy model
-COPY model/model.pkl ./model/model.pkl
+COPY model/model.pkl /app/model/model.pkl
 
 # Copy controller files
 COPY controller/ ./controller/

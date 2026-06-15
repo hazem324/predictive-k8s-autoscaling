@@ -87,3 +87,9 @@ def get_metrics(deployment: str, namespace: str) -> dict:
         "day_of_week": now.weekday(),
         "is_weekend":  int(now.weekday() >= 5),
     }
+if __name__ == "__main__":
+    metrics = get_metrics("backend", "task-flow")
+
+    print("\n=== Metrics ===")
+    for key, value in metrics.items():
+        print(f"{key}: {value}")

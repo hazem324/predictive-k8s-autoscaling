@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-controller
+  namespace: task-flow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-controller
+  template:
+    metadata:
+      labels:
+        app: ai-controller
+    spec:
+      serviceAccountName: ai-controller-sa
+      containers:
+      - name: controller
+        image: hazem231/predictive-k8s-autoscaling:1.5
