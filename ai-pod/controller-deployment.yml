@@ -16,4 +16,4 @@ spec:
       serviceAccountName: ai-controller-sa
       containers:
       - name: controller
-        image: hazem231/predictive-k8s-autoscaling:1.5
+        image: hazem231/predictive-k8s-autoscaling:2.0
