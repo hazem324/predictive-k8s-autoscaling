@@ -1,19 +1,29 @@
 import requests
 from datetime import datetime
 
-PROMETHEUS = "http://monitoring-kube-prometheus-prometheus:9090"
+PROMETHEUS = "http://monitoring-kube-prometheus-prometheus.default.svc.cluster.local:9090"
 
 
 def query(q: str) -> float:
     try:
+        print(f"\nPROMQL: {q}", flush=True)
+
         r = requests.get(
             f"{PROMETHEUS}/api/v1/query",
             params={"query": q},
             timeout=5,
         )
-        res = r.json()["data"]["result"]
+
+        data = r.json()
+
+        print(f"RESULT: {data}", flush=True)
+
+        res = data["data"]["result"]
+
         return float(res[0]["value"][1]) if res else 0.0
-    except Exception:
+
+    except Exception as e:
+        print(f"PROM ERROR: {e}", flush=True)
         return 0.0
 
 
@@ -74,7 +84,7 @@ def get_metrics(deployment: str, namespace: str) -> dict:
 
         # Requests per minute 
         "wep": query(
-    f'sum(rate(nginx_ingress_controller_requests{{exported_namespace="{namespace}"}}[1m])) * 60'
+    f'sum(rate(nginx_ingress_controller_requests{{exported_namespace="{namespace}"}}[5m])) * 60'
 ),
 
         # Borg-specific features not available in Prometheus 
@@ -87,9 +97,3 @@ def get_metrics(deployment: str, namespace: str) -> dict:
         "day_of_week": now.weekday(),
         "is_weekend":  int(now.weekday() >= 5),
     }
-if __name__ == "__main__":
-    metrics = get_metrics("backend", "task-flow")
-
-    print("\n=== Metrics ===")
-    for key, value in metrics.items():
-        print(f"{key}: {value}")

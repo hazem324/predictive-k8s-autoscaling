@@ -3,6 +3,9 @@ kind: Deployment
 
 metadata:
   name: backend
+  namespace: task-flow
+  labels:
+    ai-scaling: "enabled"
 
 spec:
   replicas: 2
@@ -28,14 +31,14 @@ spec:
             - name: SPRING_DATASOURCE_URL
               valueFrom:
                 configMapKeyRef:
-                name: app-config
-                key: SPRING_DATASOURCE_URL
+                  name: app-config
+                  key: SPRING_DATASOURCE_URL
 
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 configMapKeyRef:
-                name: app-config
-                key: SPRING_DATASOURCE_USERNAME
+                  name: app-config
+                  key: SPRING_DATASOURCE_USERNAME
 
             - name: SPRING_DATASOURCE_PASSWORD
               value: apppass
@@ -44,7 +47,6 @@ spec:
             requests:
               cpu: "200m"
               memory: "256Mi"
-
             limits:
               cpu: "1000m"
               memory: "512Mi"

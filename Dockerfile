@@ -15,4 +15,4 @@ COPY model/model.pkl /app/model/model.pkl
 COPY controller/ ./controller/
 
 # Run application
-CMD ["python", "controller/controller.py"]
+CMD ["python", "-u", "controller/controller.py"]

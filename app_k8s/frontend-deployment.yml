@@ -3,7 +3,8 @@ kind: Deployment
 
 metadata:
   name: frontend
-
+  labels: 
+    ai-scaling: "enabled"
 spec:
   replicas: 1
 
